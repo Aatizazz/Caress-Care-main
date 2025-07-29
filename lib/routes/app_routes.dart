@@ -9,6 +9,8 @@ import 'package:caress_care/view/screens/profile/edit_profile_screen.dart';
 import 'package:caress_care/view/screens/profile/profile_screen.dart';
 import 'package:caress_care/view/screens/splash_screen.dart';
 import 'package:caress_care/view/screens/video_ref_screen.dart';
+import 'package:caress_care/journal_screen.dart';
+import 'package:caress_care/community_screen.dart'; // <-- NEW import
 import 'package:get/get.dart';
 
 class AppRoutes {
@@ -17,12 +19,14 @@ class AppRoutes {
   static const String register = '/register';
   static const String mood = '/mood';
   static const String motivation = '/motivation';
+  static const String journal = '/journal';
   static const String checklistScreen = '/ChecklistScreen';
   static const String videoRefScreen = '/VideoRefScreen';
   static const String doctorRefScreen = '/DoctorRefScreen';
   static const String agreementScreen = '/AgreementScreen';
   static const String editProfileScreen = '/EditProfileScreen';
   static const String profileScreen = '/ProfileScreen';
+  static const String community = '/community'; // <-- NEW route name
   static const String home = '/home'; // ✅ Home route uses ModSelectionScreen
 
   static final routes = [
@@ -31,6 +35,7 @@ class AppRoutes {
     GetPage(name: register, page: () => const RegisterScreen()),
     GetPage(name: mood, page: () => const ModSelectionScreen()),
     GetPage(name: motivation, page: () => const MotivationalScreen()),
+    GetPage(name: journal, page: () => const JournalScreen()),
     GetPage(name: checklistScreen, page: () => const ChecklistScreen()),
     GetPage(name: videoRefScreen, page: () => VideoRefScreen()),
     GetPage(name: doctorRefScreen, page: () => DoctorRefScreen()),
@@ -38,8 +43,9 @@ class AppRoutes {
     GetPage(name: editProfileScreen, page: () => EditProfileScreen()),
     GetPage(name: profileScreen, page: () => ProfileScreen()),
     GetPage(
-      name: home,
-      page: () => const ModSelectionScreen(),
-    ), // ✅ your home screen
+      name: community,
+      page: () => const CommunityScreen(),
+    ), // <-- NEW route
+    GetPage(name: home, page: () => const ModSelectionScreen()),
   ];
 }

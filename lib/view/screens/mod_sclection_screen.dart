@@ -17,7 +17,8 @@ class ModSelectionScreen extends StatefulWidget {
   State<ModSelectionScreen> createState() => _ModSelectionScreenState();
 }
 
-class _ModSelectionScreenState extends State<ModSelectionScreen> {
+class _ModSelectionScreenState extends State<ModSelectionScreen>
+    with SingleTickerProviderStateMixin {
   final List<String> _quotes = [
     "You are stronger than you think.",
     "Keep going. You're doing great!",
@@ -28,6 +29,8 @@ class _ModSelectionScreenState extends State<ModSelectionScreen> {
 
   int _currentQuoteIndex = 0;
   Timer? _quoteTimer;
+  late AnimationController _controller;
+  late Animation<Offset> _slideUp;
 
   @override
   void initState() {
@@ -37,11 +40,23 @@ class _ModSelectionScreenState extends State<ModSelectionScreen> {
         _currentQuoteIndex = (_currentQuoteIndex + 1) % _quotes.length;
       });
     });
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _slideUp = Tween<Offset>(
+      begin: const Offset(0, 1.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _controller.forward();
   }
 
   @override
   void dispose() {
     _quoteTimer?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -75,13 +90,8 @@ class _ModSelectionScreenState extends State<ModSelectionScreen> {
                             .scale(
                               begin: const Offset(1, 1),
                               end: const Offset(1.3, 1.3),
-                              duration: const Duration(seconds: 1),
                             )
-                            .fade(
-                              begin: 0.3,
-                              end: 1.0,
-                              duration: const Duration(seconds: 1),
-                            ),
+                            .fade(begin: 0.3, end: 1.0),
                         const SizedBox(height: 16),
                         Text(
                           "Caress Care",
@@ -119,176 +129,201 @@ class _ModSelectionScreenState extends State<ModSelectionScreen> {
     final user = Provider.of<ProfileController>(context).user;
 
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: AppColors.mainGradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: AppColors.mainGradient,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Column(
+                children: [
+                  /// --- Header ---
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Welcome back, ${user?.firstName ?? "User"}',
+                            style: AppTextStyles.heading20.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => Get.toNamed(AppRoutes.profileScreen),
+                          child: CircleAvatar(
+                            radius: 24,
+                            backgroundColor: AppColors.gradientMid,
+                            backgroundImage:
+                                (user?.avatarPath != null &&
+                                        user!.avatarPath!.isNotEmpty)
+                                    ? (user.avatarPath!.startsWith('http')
+                                        ? NetworkImage(user.avatarPath!)
+                                        : FileImage(File(user.avatarPath!))
+                                            as ImageProvider)
+                                    : null,
+                            child:
+                                (user?.avatarPath == null ||
+                                        user!.avatarPath!.isEmpty)
+                                    ? const Icon(
+                                      Icons.person,
+                                      color: AppColors.textPrimary,
+                                    )
+                                    : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  /// --- Quote Box ---
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SizedBox(
+                      height: 140,
+                      child: GlassBox(
+                        borderRadius: 30,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 18,
+                        ),
+                        child: Center(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 600),
+                            child: Text(
+                              _quotes[_currentQuoteIndex],
+                              key: ValueKey(_quotes[_currentQuoteIndex]),
+                              style: AppTextStyles.body16.copyWith(
+                                color: AppColors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+                  Text(
+                    "How's your mood today?",
+                    style: AppTextStyles.heading20.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+
+                  /// --- Mood Options ---
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: const [
+                        Expanded(
+                          child: MoodOption(
+                            mood: 'Happy',
+                            emoji: '😊',
+                            onTap: AppRoutes.motivation,
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: MoodOption(
+                            mood: 'Sad',
+                            emoji: '😞',
+                            onTap: AppRoutes.checklistScreen,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          child: Column(
-            children: [
-              // Top: Welcome + Profile
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+
+          /// --- Bottom Navigation ---
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: SlideTransition(
+              position: _slideUp,
+              child: GlassBox(
+                borderRadius: 30,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 20,
+                ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    // Welcome Text
-                    Expanded(
-                      child: Text(
-                        'Welcome back, ${user?.firstName ?? "User"}',
-                        style: AppTextStyles.heading20.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.white,
-                        ),
-                      ),
+                    _NavButton(
+                      icon: Icons.book_rounded,
+                      label: "Journal",
+                      onTap: () => Get.toNamed(AppRoutes.journal),
                     ),
-                    // Profile Icon
-                    GestureDetector(
-                      onTap: () => Get.toNamed(AppRoutes.profileScreen),
-                      child: CircleAvatar(
-                        radius: 24,
-                        backgroundColor: AppColors.gradientMid,
-                        backgroundImage:
-                            (user?.avatarPath != null &&
-                                    user!.avatarPath!.isNotEmpty)
-                                ? (user.avatarPath!.startsWith('http')
-                                    ? NetworkImage(user.avatarPath!)
-                                    : FileImage(File(user.avatarPath!))
-                                        as ImageProvider)
-                                : null,
-                        child:
-                            (user?.avatarPath == null ||
-                                    user!.avatarPath!.isEmpty)
-                                ? const Icon(
-                                  Icons.person,
-                                  color: AppColors.textPrimary,
-                                )
-                                : null,
-                      ),
+                    _NavButton(
+                      icon: Icons.people_rounded,
+                      label: "Community",
+                      onTap: () => Get.toNamed(AppRoutes.community),
+                    ),
+                    _NavButton(
+                      icon: Icons.info_rounded,
+                      label: "About",
+                      onTap: () => _showAboutDialog(context),
                     ),
                   ],
                 ),
               ),
-
-              // Quote Box
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: SizedBox(
-                  height: 140,
-                  child: GlassBox(
-                    borderRadius: 30,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 18,
-                    ),
-                    child: Center(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 600),
-                        transitionBuilder:
-                            (child, animation) => FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                        child: Text(
-                          _quotes[_currentQuoteIndex],
-                          key: ValueKey(_quotes[_currentQuoteIndex]),
-                          style: AppTextStyles.body16.copyWith(
-                            color: AppColors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 40),
-
-              // Mood Heading
-              Center(
-                child: Text(
-                  "How's your mood today?",
-                  style: AppTextStyles.heading20.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Mood Options
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: const [
-                    Expanded(
-                      child: MoodOption(
-                        mood: 'Happy',
-                        emoji: '😊',
-                        onTap: AppRoutes.motivation,
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: MoodOption(
-                        mood: 'Sad',
-                        emoji: '😞',
-                        onTap: AppRoutes.checklistScreen,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 36),
-
-              // About Title
-              Text(
-                'About',
-                style: AppTextStyles.heading20.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // About GlassBox with Logo Only
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: GestureDetector(
-                  onTap: () => _showAboutDialog(context),
-                  child: SizedBox(
-                    height: 180,
-                    child: GlassBox(
-                      borderRadius: 24,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Image.asset(
-                          'assets/images/calm_zone_logo.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _NavButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 26),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ],
       ),
     );
   }
