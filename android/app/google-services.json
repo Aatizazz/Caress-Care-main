@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "426165710253",
+    "project_id": "calm-zone-62696",
+    "storage_bucket": "calm-zone-62696.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:426165710253:android:58763590ca8d6f71698524",
+        "android_client_info": {
+          "package_name": "com.codecraft.calm_zone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "426165710253-gcndd52ebivi4ebjiivs4cjik78g9s6p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJvcChmAzBMrpVPlrfQVnJEgDlgd6jCwI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "426165710253-gcndd52ebivi4ebjiivs4cjik78g9s6p.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "426165710253-rja606kqr3ljagctcfrko7a04l3itp6p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.caressCare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
